@@ -1,0 +1,4 @@
+{
+    "allowed_hosts": ["mysite.ru"],
+    "bad_words": ["дурак", "*тупиц"]
+}
