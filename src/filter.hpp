@@ -9,9 +9,9 @@
 #include <vector>
 
 // Everything here works on cp1251 text, as sent by Russian SA-MP clients.
-namespace chatguard {
+namespace moderator {
 
-// Values are shared with Pawn: keep in sync with pawn/chatguard.inc.
+// Values are shared with Pawn: keep in sync with pawn/moderator.inc.
 enum class Reason {
     None = 0,
     Flood = 1,
@@ -61,4 +61,4 @@ private:
     std::unordered_map<int, PlayerState> players_;
 };
 
-}  // namespace chatguard
+}  // namespace moderator

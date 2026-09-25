@@ -1,8 +1,8 @@
-# ChatGuard — модерация чата для open.mp
+# Модератор
 
-Компонент для сервера [open.mp](https://open.mp) (SA-MP), который проверяет сообщения в чате **до того, как их увидит мод**. Он блокирует рекламу чужих серверов, запрещённые слова, капс и флуд. Работает сразу после установки, мод трогать не нужно. Для тонкой настройки есть функции и колбэк для Pawn.
+**Модерация чата для сервера [open.mp](https://open.mp) (SA-MP).** Компонент проверяет сообщения в чате **до того, как их увидит мод**. Он блокирует рекламу чужих серверов, запрещённые слова, капс и флуд. Работает сразу после установки, мод трогать не нужно. Для тонкой настройки есть функции и колбэк для Pawn.
 
-> **Статус: v0.1.0, предварительная версия.** Проверено на open.mp 1.5.8 под Windows: загрузка компонента, чтение настроек, функции Pawn и вся логика фильтра (автотесты). Блокировку сообщений живых игроков ещё предстоит проверить в игре. Если что-то работает не так, создайте [issue](../../issues).
+> **Статус: v0.2.0, предварительная версия.** Проверено на open.mp 1.5.8 под Windows: загрузка компонента, чтение настроек, функции Pawn и вся логика фильтра (автотесты). Блокировку сообщений живых игроков ещё предстоит проверить в игре. Если что-то работает не так, создайте [issue](../../issues).
 
 ## Возможности
 
@@ -15,22 +15,22 @@
 
 ## Установка
 
-1. Скачайте `ChatGuard.dll` на странице [Releases](../../releases).
+1. Скачайте `Moderator.dll` на странице [Releases](../../releases).
 2. Положите его в папку `components` сервера.
 3. Запустите сервер. В консоли должна появиться строка:
    ```
-   Successfully loaded component ChatGuard (0.1.0.0) with UID 5a1c7e9d2b40f613
+   Successfully loaded component Moderator (0.2.0.0) with UID 5a1c7e9d2b40f613
    ```
-4. Если хотите управлять фильтром из мода, положите `chatguard.inc` (есть в релизе и в папке [`pawn`](pawn/chatguard.inc)) в `qawno/include`.
+4. Если хотите управлять фильтром из мода, положите `moderator.inc` (есть в релизе и в папке [`pawn`](pawn/moderator.inc)) в `qawno/include`.
 
 Компонент собран под **Windows** (32 бита, как сам сервер open.mp). Сборки под Linux пока нет.
 
 ## Настройка
 
-Все настройки задаются в разделе `chatguard` файла `config.json`, указывать их все не обязательно. Для начала обычно хватает белого списка и слов:
+Все настройки задаются в разделе `moderator` файла `config.json`, указывать их все не обязательно. Для начала обычно хватает белого списка и слов:
 
 ```json
-"chatguard": {
+"moderator": {
     "allowed_hosts": ["mysite.ru", "123.45.67.89", "discord.gg"],
     "bad_words": ["слово", "*корень"]
 }
@@ -68,31 +68,31 @@
 
 ```pawn
 #include <open.mp>
-#include <chatguard>
+#include <moderator>
 ```
 
 | Функция | Что делает |
 |---|---|
-| `CHATGUARD_REASON:ChatGuard_CheckText(const text[])` | Проверяет текст на рекламу, запрещённые слова и капс. Возвращает причину или `CHATGUARD_OK` |
-| `bool:ChatGuard_SetImmune(playerid, bool:immune)` | Выдаёт или снимает иммунитет: сообщения игрока в чате не проверяются. Возвращает `false`, если игрока нет |
-| `bool:ChatGuard_IsImmune(playerid)` | Есть ли у игрока иммунитет |
-| `OnChatGuardBlock(playerid, CHATGUARD_REASON:reason, const text[])` | Колбэк на каждую блокировку. Верните `0`, чтобы игрок не получил стандартное предупреждение |
+| `MODERATOR_REASON:Moderator_CheckText(const text[])` | Проверяет текст на рекламу, запрещённые слова и капс. Возвращает причину или `MODERATOR_OK` |
+| `bool:Moderator_SetImmune(playerid, bool:immune)` | Выдаёт или снимает иммунитет: сообщения игрока в чате не проверяются. Возвращает `false`, если игрока нет |
+| `bool:Moderator_IsImmune(playerid)` | Есть ли у игрока иммунитет |
+| `OnModeratorBlock(playerid, MODERATOR_REASON:reason, const text[])` | Колбэк на каждую блокировку. Верните `0`, чтобы игрок не получил стандартное предупреждение |
 
-Причины блокировки: `CHATGUARD_FLOOD`, `CHATGUARD_REPEAT`, `CHATGUARD_ADVERTISING`, `CHATGUARD_CAPS`, `CHATGUARD_BAD_WORD`.
+Причины блокировки: `MODERATOR_FLOOD`, `MODERATOR_REPEAT`, `MODERATOR_ADVERTISING`, `MODERATOR_CAPS`, `MODERATOR_BAD_WORD`.
 
 **Иммунитет для админов** — вызовите там, где мод авторизует админа:
 
 ```pawn
 if (PlayerInfo[playerid][pAdmin] > 0) // проверка админки в вашем моде
 {
-    ChatGuard_SetImmune(playerid, true);
+    Moderator_SetImmune(playerid, true);
 }
 ```
 
-**Проверка текста в командах.** Команды (`/pm`, `/ad` и т. п.) компонент сам не проверяет, для них есть `ChatGuard_CheckText`:
+**Проверка текста в командах.** Команды (`/pm`, `/ad` и т. п.) компонент сам не проверяет, для них есть `Moderator_CheckText`:
 
 ```pawn
-if (ChatGuard_CheckText(text) != CHATGUARD_OK)
+if (Moderator_CheckText(text) != MODERATOR_OK)
 {
     return SendClientMessage(playerid, 0xFF6347FF, "Объявление не прошло проверку.");
 }
@@ -101,9 +101,9 @@ if (ChatGuard_CheckText(text) != CHATGUARD_OK)
 **Свои наказания** — например, мут за рекламу вместо стандартного предупреждения:
 
 ```pawn
-public OnChatGuardBlock(playerid, CHATGUARD_REASON:reason, const text[])
+public OnModeratorBlock(playerid, MODERATOR_REASON:reason, const text[])
 {
-    if (reason == CHATGUARD_ADVERTISING)
+    if (reason == MODERATOR_ADVERTISING)
     {
         SendClientMessage(playerid, 0xFF6347FF, "Реклама запрещена. Мут на 10 минут.");
         // MutePlayer(playerid, 10); — ваш код
@@ -125,17 +125,17 @@ public OnChatGuardBlock(playerid, CHATGUARD_REASON:reason, const text[])
 Нужна Visual Studio 2022 с компонентом «Разработка классических приложений на C++»; CMake и Ninja входят в неё.
 
 ```bat
-git clone --recursive https://github.com/sonik-boom71/omp-chatguard
-cd omp-chatguard
+git clone --recursive https://github.com/sonik-boom71/omp-moderator
+cd omp-moderator
 build.bat
 ```
 
-`build.bat` сам находит Visual Studio, собирает 32-битный `build\ChatGuard.dll` и запускает автотесты. Зависимости (open.mp SDK и pawn-natives) подключены как git-подмодули, поэтому при клонировании нужен `--recursive`.
+`build.bat` сам находит Visual Studio, собирает 32-битный `build\Moderator.dll` и запускает автотесты. Зависимости (open.mp SDK и pawn-natives) подключены как git-подмодули, поэтому при клонировании нужен `--recursive`.
 
 ## Тесты
 
 - **Автотесты логики фильтра** ([`tests/filter_tests.cpp`](tests/filter_tests.cpp)) запускаются при каждой сборке. Проверяются реклама, слова, капс, флуд, иммунитет и перекодировка cp1251 (сверкой с Windows по всем 256 символам).
-- **Проверка на настоящем сервере** — `server_test.bat`. Распакуйте `open.mp-win-x86.zip` из [релизов open.mp](https://github.com/openmultiplayer/open.mp/releases) так, чтобы получилось `deps\server-dist\Server\omp-server.exe`. Скрипт поднимет локальный сервер на `127.0.0.1:7797` с тестовым модом [`testmode/chatguard_test.pwn`](testmode/chatguard_test.pwn) и проверит результат.
+- **Проверка на настоящем сервере** — `server_test.bat`. Распакуйте `open.mp-win-x86.zip` из [релизов open.mp](https://github.com/openmultiplayer/open.mp/releases) так, чтобы получилось `deps\server-dist\Server\omp-server.exe`. Скрипт поднимет локальный сервер на `127.0.0.1:7797` с тестовым модом [`testmode/moderator_test.pwn`](testmode/moderator_test.pwn) и проверит результат.
 
 ## Структура проекта
 
@@ -144,7 +144,7 @@ build.bat
 | `src/filter.*` | Логика фильтра: реклама, слова, капс, флуд, иммунитет. От open.mp не зависит |
 | `src/cp1251.*` | Перекодировка cp1251 ↔ UTF-8 и работа с регистром русских букв |
 | `src/component.cpp` | Связка с open.mp: настройки, перехват чата, функции и колбэк для Pawn |
-| `pawn/chatguard.inc` | Include для Pawn |
+| `pawn/moderator.inc` | Include для Pawn |
 | `tests/` | Автотесты |
 | `testmode/` | Тестовый мод и настройки для `server_test.bat` |
 | `deps/` | open.mp SDK и pawn-natives (подмодули), `amx.h` из компилятора Pawn |

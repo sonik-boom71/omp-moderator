@@ -15,7 +15,7 @@ cmake --build build || exit /b 1
 ctest --test-dir build --output-on-failure || exit /b 1
 
 echo.
-echo Done: build\ChatGuard.dll
+echo Done: build\Moderator.dll
 exit /b 0
 
 :no_vs

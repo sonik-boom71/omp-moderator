@@ -4,7 +4,7 @@
 
 #include "cp1251.hpp"
 
-namespace chatguard {
+namespace moderator {
 namespace {
 
 bool is_digit(unsigned char c) {
@@ -192,4 +192,4 @@ bool Guard::is_immune(int player) const {
     return it != players_.end() && it->second.immune;
 }
 
-}  // namespace chatguard
+}  // namespace moderator

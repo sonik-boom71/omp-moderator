@@ -13,7 +13,7 @@
 
 namespace {
 
-using chatguard::Reason;
+using moderator::Reason;
 using namespace std::chrono_literals;
 
 int g_failures = 0;
@@ -33,8 +33,8 @@ std::string t(const char* utf8) {
     return cp1251::from_utf8(utf8);
 }
 
-Reason check(const char* utf8, const chatguard::Settings& settings = {}) {
-    return chatguard::check_text(t(utf8), settings);
+Reason check(const char* utf8, const moderator::Settings& settings = {}) {
+    return moderator::check_text(t(utf8), settings);
 }
 
 void test_encoding() {
@@ -77,7 +77,7 @@ void test_advertising() {
     CHECK(check("заходи на сервер.рф") == Reason::Advertising);
     CHECK(check("Mr.Smith, привет... как ты?") == Reason::None);
 
-    chatguard::Settings own;
+    moderator::Settings own;
     own.allowed_hosts = {"mysite.ru", "1.2.3.4"};
     CHECK(check("наш форум mysite.ru", own) == Reason::None);
     CHECK(check("наш форум forum.mysite.ru", own) == Reason::None);
@@ -85,7 +85,7 @@ void test_advertising() {
     CHECK(check("наш IP 1.2.3.4, а лучше 5.6.7.8", own) == Reason::Advertising);
     CHECK(check("наш форум mysite.ru, а не other.ru", own) == Reason::Advertising);
 
-    chatguard::Settings off;
+    moderator::Settings off;
     off.anti_ads = false;
     CHECK(check("заходите 185.169.134.67", off) == Reason::None);
 }
@@ -97,13 +97,13 @@ void test_caps() {
     CHECK(check("Привет Всем") == Reason::None);
     CHECK(check("HELLO world") == Reason::None);
 
-    chatguard::Settings off;
+    moderator::Settings off;
     off.anti_caps = false;
     CHECK(check("ВСЕМ ПРИВЕТ", off) == Reason::None);
 }
 
 void test_bad_words() {
-    chatguard::Settings s;
+    moderator::Settings s;
     s.bad_words = {t("дурак"), "*" + t("тупиц")};
     CHECK(check("ты ДуРаК", s) == Reason::BadWord);
     CHECK(check("ты д.у.р.а.к", s) == Reason::BadWord);
@@ -114,8 +114,8 @@ void test_bad_words() {
 }
 
 void test_flood_and_repeat() {
-    chatguard::Guard guard;
-    const auto t0 = chatguard::Clock::now();
+    moderator::Guard guard;
+    const auto t0 = moderator::Clock::now();
 
     CHECK(guard.check_message(1, t("первое"), t0) == Reason::None);
     CHECK(guard.check_message(1, t("второе"), t0 + 100ms) == Reason::None);
@@ -134,8 +134,8 @@ void test_flood_and_repeat() {
 }
 
 void test_immunity() {
-    chatguard::Guard guard;
-    const auto now = chatguard::Clock::now();
+    moderator::Guard guard;
+    const auto now = moderator::Clock::now();
 
     guard.set_immune(5, true);
     CHECK(guard.is_immune(5));
